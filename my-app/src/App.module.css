@@ -28,6 +28,6 @@
 	color: #61dafb;
 }
 
-button:focus {
+.submit:focus {
 	color: red;
 }

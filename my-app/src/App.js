@@ -1,102 +1,70 @@
-import { useState, useRef } from 'react';
+import { useForm } from 'react-hook-form';
 import styles from './App.module.css';
-
-const initialState = {
-	email: '',
-	password: '',
-	checkPassword: '',
-};
-
-const useStore = () => {
-	const [state, setState] = useState(initialState);
-
-	return {
-		getState: () => state,
-		updateState: (fieldName, newValue) => {
-			setState({ ...state, [fieldName]: newValue });
-		},
-	};
-};
-
-const sendData = (formData) => {
-	console.log(formData);
-};
+import * as React from 'react';
 
 export const App = () => {
-	const { getState, updateState } = useStore();
-	const [emailError, setEmailError] = useState(null);
-	const [passwordError, setPasswordError] = useState(null);
+	const {
+		register,
+		handleSubmit,
+		watch,
+		formState: { errors },
+	} = useForm({
+		mode: 'onChange',
+		defaultValues: {
+			email: '',
+			password: '',
+			checkPassword: '',
+		},
+	});
 
-	const submitButtonRef = useRef(null);
-
-	const onSumbit = (event) => {
-		event.preventDefault();
-		sendData(getState());
+	const emailProps = {
+		pattern: {
+			value: /^\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,4}$/,
+			message:
+				'E-mail должен иметь вид example@site.ru и не содержать символов кроме "_"',
+		},
 	};
 
-	const { email, password, checkPassword } = getState();
-
-	const onEmailChange = ({ target }) => {
-		updateState('email', target.value);
-
-		let error = null;
-		if (!/^\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,4}$/.test(target.value)) {
-			error = 'email должен иметь вид: example@site.com';
-		}
-		setEmailError(error);
+	const passwordProps = {
+		required: true,
 	};
 
-	const onPasswordChange = ({ target }) => {
-		updateState('password', target.value);
-
-		let error = null;
-		if (target.value === checkPassword) {
-			submitButtonRef.current.focus();
-			setPasswordError(null);
-		} else if (target.value !== checkPassword && checkPassword !== '') {
-			error = 'Пароли не совпадают';
-			setPasswordError(error);
-		}
+	const checkPasswordProps = {
+		required: true,
+		validate: (value) => {
+			if (watch('password') !== value) {
+				return 'Пароли не совпадают';
+			}
+		},
 	};
 
-	const onCheckPasswordChange = ({ target }) => {
-		updateState('checkPassword', target.value);
+	const emailError = errors.email?.message;
+	const passwordError = errors.checkPassword?.message;
 
-		let error = null;
-		if (target.value === password) {
-			submitButtonRef.current.focus();
-			setPasswordError(null);
-		} else if (target.value !== password && password !== '') {
-			error = 'Пароли не совпадают';
-			setPasswordError(error);
-		}
+	const onSumbit = (formData) => {
+		console.log(formData);
 	};
+
+	const buttonRef = React.useRef(null);
 
 	return (
 		<div className={styles.App}>
-			<form onSubmit={onSumbit}>
+			<form onSubmit={handleSubmit(onSumbit)}>
 				<input
+					{...register('email', emailProps)}
 					type="email"
 					placeholder="example@example.com"
-					value={email}
-					onChange={onEmailChange}
 				/>
+				<input type="password" {...register('password', passwordProps)}></input>
 				<input
 					type="password"
-					placeholder="Введите пароль"
-					value={password}
-					onChange={onPasswordChange}
-				/>
-				<input
-					type="password"
-					placeholder="Повторите пароль"
-					value={checkPassword}
-					onChange={onCheckPasswordChange}
-				/>
+					{...register('checkPassword', checkPasswordProps)}
+				></input>
 				<button
-					ref={submitButtonRef}
-					type="submit"
-					disabled={emailError && passwordError !== null}
+					ref={buttonRef}
+					className={styles.submit}
+					type="button"
+					disabled={(passwordError || emailError) !== undefined}
 				>
 					Регистрация
 				</button>
