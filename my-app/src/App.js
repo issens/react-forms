@@ -7,7 +7,8 @@ export const App = () => {
 		register,
 		handleSubmit,
 		watch,
-		formState: { errors },
+		setFocus,
+		formState: { errors, isValid },
 	} = useForm({
 		mode: 'onChange',
 		defaultValues: {
@@ -45,7 +46,11 @@ export const App = () => {
 		console.log(formData);
 	};
 
-	const buttonRef = React.useRef(null);
+	React.useEffect(() => {
+		if (isValid) {
+			setFocus('button');
+		}
+	});
 
 	return (
 		<div className={styles.App}>
@@ -60,14 +65,13 @@ export const App = () => {
 					type="password"
 					{...register('checkPassword', checkPasswordProps)}
 				></input>
-				<button
-					ref={buttonRef}
+				<input
+					value="Регистрация"
 					className={styles.submit}
 					type="button"
+					{...register('button')}
 					disabled={(passwordError || emailError) !== undefined}
-				>
-					Регистрация
-				</button>
+				></input>
 			</form>
 			{emailError && <div>{emailError}</div>}
 			{passwordError && <div>{passwordError}</div>}
